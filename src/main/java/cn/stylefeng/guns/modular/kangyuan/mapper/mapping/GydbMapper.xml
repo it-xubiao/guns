@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.stylefeng.guns.modular.kangyuan.mapper.GydbMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="cn.stylefeng.guns.modular.kangyuan.entity.Gydb">
+        <id column="S_BATCH_NUMBER" property="batchNumber" />
+        <result column="S_DEVICE_CODE" property="deviceCode" />
+        <result column="S_DEVICE_NAME" property="deviceName" />
+        <result column="S_PROCESS_NAME" property="processName" />
+        <result column="S_STAGE_NAME" property="stageName" />
+        <result column="S_PRODUCT_NAME" property="productName" />
+        <result column="S_PARA_NAME" property="paraName" />
+        <result column="N_VALUE" property="value" />
+        <result column="S_UNIT" property="unit" />
+        <result column="TM_CURT" property="tmCurt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        S_BATCH_NUMBER AS "batchNumber",
+         S_DEVICE_CODE AS "deviceCode",
+         S_DEVICE_NAME AS "deviceName",
+         S_PROCESS_NAME AS "processName",
+         S_STAGE_NAME AS "stageName",
+         S_PRODUCT_NAME AS "productName",
+         S_PARA_NAME AS "paraName",
+         N_VALUE AS "value",
+         S_UNIT AS "unit",
+         TM_CURT AS "tmCurt"
+    </sql>
+
+    <select id="tree" resultType="cn.stylefeng.guns.core.common.node.ZTreeNode">
+		select dept_id AS id, pid as "pId", simple_name as name,
+		(
+		CASE
+		WHEN (pid = 0 OR pid IS NULL) THEN
+		'true'
+		ELSE
+		'false'
+		END
+		) as "open" from sys_dept
+	</select>
+
+    <select id="list" resultType="map">
+        select
+        <include refid="Base_Column_List"/>
+        from sys_dept where 1 = 1
+        <if test="condition != null and condition != ''">
+            and simple_name like CONCAT('%',#{condition},'%') or full_name like CONCAT('%',#{condition},'%')
+        </if>
+        <if test="deptId != null and deptId != ''">
+            and (dept_id = #{deptId} or dept_id in ( select dept_id from sys_dept where pids like CONCAT('%$[', #{deptId}, '$]%') escape '$' ))
+        </if>
+        order by sort ASC
+    </select>
+
+    <select id="treeviewNodes" resultType="cn.stylefeng.guns.core.common.node.TreeviewNode">
+        select dept_id AS tags, pid as "parentId", simple_name as text from sys_dept
+    </select>
+
+    <select id="likePids" resultType="cn.stylefeng.guns.modular.system.entity.Dept">
+        select
+        <include refid="Base_Column_List"/>
+        from sys_dept where 1 = 1
+        <if test="deptId != null and deptId != ''">
+            and pids LIKE CONCAT('%$[',#{deptId},'$]%') escape '$'
+        </if>
+    </select>
+
+</mapper>
